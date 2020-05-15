@@ -2,10 +2,8 @@
 {
     #region using
 
-    using System;
-    using System.Reflection;
-
     using OpenQA.Selenium.Remote;
+    using System;
 
     #endregion
 
@@ -36,6 +34,18 @@
             get
             {
                 return this.internalExecutor.CommandInfoRepository;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (this.service.IsRunning is true)
+            {
+                this.service.Dispose();
+                while (this.service.ProcessId != 0)
+                {
+                    System.Threading.Thread.Sleep(200);
+                }
             }
         }
 
