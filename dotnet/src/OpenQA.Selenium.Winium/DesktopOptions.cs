@@ -30,19 +30,19 @@
     /// Class to manage options specific to <see cref="WiniumDriver"/> 
     /// wich uses <see href="https://github.com/2gis/Winium.Desktop">Winium.Desktop</see>.
     /// </summary>
-    public class DesktopOptions : IWiniumOptions
+    public class DesktopOptions : DriverOptions
     {
         #region Constants
 
-        private const string ApplicationPathOption = "app";
+        private const string ApplicationPathOption = "winium:app";
 
-        private const string ArgumentsOption = "args";
+        private const string ArgumentsOption = "winium:args";
 
-        private const string DebugConnectToRunningAppOption = "debugConnectToRunningApp";
+        private const string DebugConnectToRunningAppOption = "winium:debugConnectToRunningApp";
 
-        private const string KeyboardSimulatorOption = "keyboardSimulator";
+        private const string KeyboardSimulatorOption = "winium:keyboardSimulator";
 
-        private const string LaunchDelayOption = "launchDelay";
+        private const string LaunchDelayOption = "winium:launchDelay";
 
         #endregion
 
@@ -127,7 +127,7 @@
         /// Convert options to DesiredCapabilities for Winium Desktop Driver 
         /// </summary>
         /// <returns>The DesiredCapabilities for Winium Desktop Driver with these options.</returns>
-        public ICapabilities ToCapabilities()
+        public override ICapabilities ToCapabilities()
         {
             var capabilityDictionary = new Dictionary<string, object>
                                            {
@@ -154,7 +154,13 @@
                 capabilityDictionary.Add(LaunchDelayOption, this.launchDelay);
             }
 
-            return new DesiredCapabilities(capabilityDictionary);
+            var capabilities = this.GenerateDesiredCapabilities(true);
+            foreach (var option in capabilityDictionary)
+            {
+                capabilities.SetCapability(option.Key, option.Value);
+            }
+
+            return capabilities;
         }
 
         #endregion

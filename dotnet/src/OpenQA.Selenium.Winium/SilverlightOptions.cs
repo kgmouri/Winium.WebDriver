@@ -13,21 +13,21 @@
     /// Class to manage options specific to <see cref="WiniumDriver"/> 
     /// wich uses <see href="https://github.com/2gis/winphonedrive">Windows Phone Driver</see>.
     /// </summary>
-    public class SilverlightOptions : IWiniumOptions
+    public class SilverlightOptions : DriverOptions
     {
         #region Constants
 
-        private const string ApplicationPathOption = "app";
+        private const string ApplicationPathOption = "winium:app";
 
-        private const string DebugConnectToRunningAppOption = "debugConnectToRunningApp";
+        private const string DebugConnectToRunningAppOption = "winium:debugConnectToRunningApp";
 
-        private const string DeviceNameOption = "deviceName";
+        private const string DeviceNameOption = "winium:deviceName";
 
-        private const string InnerPortOption = "innerPort";
+        private const string InnerPortOption = "winium:innerPort";
 
-        private const string LaunchDelayOption = "launchDelay";
+        private const string LaunchDelayOption = "winium:launchDelay";
 
-        private const string LaunchTimeoutOption = "launchTimeout";
+        private const string LaunchTimeoutOption = "winium:launchTimeout";
 
         #endregion
 
@@ -130,7 +130,7 @@
         /// Convert options to DesiredCapabilities for Windows Phone Driver 
         /// </summary>
         /// <returns>The DesiredCapabilities for Windows Phone Driver with these options.</returns>
-        public ICapabilities ToCapabilities()
+        public override ICapabilities ToCapabilities()
         {
             var capabilityDictionary = new Dictionary<string, object>
                                            {
@@ -167,7 +167,13 @@
                 capabilityDictionary.Add(InnerPortOption, this.innerPort);
             }
 
-            return new DesiredCapabilities(capabilityDictionary);
+            var capabilities = this.GenerateDesiredCapabilities(true);
+            foreach (var option in capabilityDictionary)
+            {
+                capabilities.SetCapability(option.Key, option.Value);
+            }
+
+            return capabilities;
         }
 
         #endregion

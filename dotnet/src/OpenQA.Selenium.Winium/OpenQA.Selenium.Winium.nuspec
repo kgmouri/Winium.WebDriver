@@ -9,15 +9,17 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <dependencies>
-      <dependency id="Selenium.WebDriver" version="[3.141.0]" />
+      <dependency id="Selenium.WebDriver" version="[4.11.0]" />
     </dependencies>
     <releaseNotes>
+v1.0.0
+- updated selenium dependency to version 4.11.0
 v0.1.2
 - updated selenium dependency to version 3.141.0
 v0.1.1
 - Add constructor using specifed remote address
 </releaseNotes>
-    <copyright>Copyright @ 2020</copyright>
+    <copyright>Copyright @ 2023</copyright>
     <tags>Winium WebDriver C#</tags>
   </metadata>
 </package>

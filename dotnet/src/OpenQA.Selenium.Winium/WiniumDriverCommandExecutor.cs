@@ -29,12 +29,10 @@
 
         #region Public Properties
 
-        public CommandInfoRepository CommandInfoRepository
+        /// <see cref="ICommandExecutor.TryAddCommand"/>
+        public bool TryAddCommand(string commandName, CommandInfo info)
         {
-            get
-            {
-                return this.internalExecutor.CommandInfoRepository;
-            }
+            return this.internalExecutor.TryAddCommand(commandName, info);
         }
 
         public void Dispose()

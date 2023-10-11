@@ -13,23 +13,23 @@
     /// Class to manage options specific to <see cref="WiniumDriver"/> 
     /// wich uses <see href="https://github.com/2gis/Winium.StoreApps">Winium.StoreApps</see>.
     /// </summary>
-    public class StoreAppsOptions : IWiniumOptions
+    public class StoreAppsOptions : DriverOptions
     {
         #region Constants
 
-        private const string ApplicationPathOption = "app";
+        private const string ApplicationPathOption = "winium:app";
 
-        private const string DebugConnectToRunningAppOption = "debugConnectToRunningApp";
+        private const string DebugConnectToRunningAppOption = "winium:debugConnectToRunningApp";
 
-        private const string DependenciesOption = "dependencies";
+        private const string DependenciesOption = "winium:dependencies";
 
-        private const string DeviceNameOption = "deviceName";
+        private const string DeviceNameOption = "winium:deviceName";
 
-        private const string FilesOption = "files";
+        private const string FilesOption = "winium:files";
 
-        private const string LaunchDelayOption = "launchDelay";
+        private const string LaunchDelayOption = "winium:launchDelay";
 
-        private const string LaunchTimeoutOption = "launchTimeout";
+        private const string LaunchTimeoutOption = "winium:launchTimeout";
 
         #endregion
 
@@ -145,7 +145,7 @@
         /// Convert options to DesiredCapabilities for Winium StoreApps Driver 
         /// </summary>
         /// <returns>The DesiredCapabilities for Winium StoreApps Driver with these options.</returns>
-        public ICapabilities ToCapabilities()
+        public override ICapabilities ToCapabilities()
         {
             var capabilityDictionary = new Dictionary<string, object>
                                            {
@@ -182,7 +182,13 @@
                 capabilityDictionary.Add(DependenciesOption, this.dependencies);
             }
 
-            return new DesiredCapabilities(capabilityDictionary);
+            var capabilities = this.GenerateDesiredCapabilities(true);
+            foreach (var option in capabilityDictionary)
+            {
+                capabilities.SetCapability(option.Key, option.Value);
+            }
+
+            return capabilities;
         }
 
         #endregion

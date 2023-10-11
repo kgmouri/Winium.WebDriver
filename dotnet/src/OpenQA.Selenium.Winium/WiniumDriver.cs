@@ -4,7 +4,8 @@
 
     using System;
 
-    using OpenQA.Selenium.Remote;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
 
     #endregion
 
@@ -41,8 +42,14 @@
     /// }
     /// </code>
     /// </example>
-    public class WiniumDriver : RemoteWebDriver
+    public class WiniumDriver : WebDriver, IFindsWiniumElement
     {
+        #region Fields
+
+        private WiniumElementFactory elementFactory;
+
+        #endregion
+
         #region Constructors and Destructors
 
         /// <summary>
@@ -55,8 +62,8 @@
         /// <param name="options">
         /// The <see cref="DesktopOptions"/> to be used with the Winium driver.
         /// </param>
-        public WiniumDriver(string winiumDriverDirectory, IWiniumOptions options)
-            : this(winiumDriverDirectory, options, RemoteWebDriver.DefaultCommandTimeout)
+        public WiniumDriver(string winiumDriverDirectory, DriverOptions options)
+            : this(winiumDriverDirectory, options, WebDriver.DefaultCommandTimeout)
         {
         }
 
@@ -73,7 +80,7 @@
         /// <param name="commandTimeout">
         /// The maximum amount of time to wait for each command.
         /// </param>
-        public WiniumDriver(string winiumDriverDirectory, IWiniumOptions options, TimeSpan commandTimeout)
+        public WiniumDriver(string winiumDriverDirectory, DriverOptions options, TimeSpan commandTimeout)
             : this(CreateDefaultService(options.GetType(), winiumDriverDirectory), options, commandTimeout)
         {
         }
@@ -84,8 +91,8 @@
         /// </summary>
         /// <param name="service">The <see cref="WiniumDriverService"/> to use.</param>
         /// <param name="options">The <see cref="DesktopOptions"/> used to initialize the driver.</param>
-        public WiniumDriver(WiniumDriverService service, IWiniumOptions options)
-            : this(service, options, RemoteWebDriver.DefaultCommandTimeout)
+        public WiniumDriver(WiniumDriverService service, DriverOptions options)
+            : this(service, options, WebDriver.DefaultCommandTimeout)
         {
         }
 
@@ -93,21 +100,22 @@
         /// Initializes a new instance of the <see cref="WiniumDriver"/> class using the specified <see cref="WiniumDriverService"/>.
         /// </summary>
         /// <param name="service">The <see cref="WiniumDriverService"/> to use.</param>
-        /// <param name="options">The <see cref="IWiniumOptions"/> object to be used with the Winium driver.</param>
+        /// <param name="options">The <see cref="DriverOptions"/> object to be used with the Winium driver.</param>
         /// <param name="commandTimeout">The maximum amount of time to wait for each command.</param>
-        public WiniumDriver(WiniumDriverService service, IWiniumOptions options, TimeSpan commandTimeout)
+        public WiniumDriver(WiniumDriverService service, DriverOptions options, TimeSpan commandTimeout)
             : base(new WiniumDriverCommandExecutor(service, commandTimeout), options.ToCapabilities())
         {
             this.InitWiniumDriverCommands();
+            elementFactory = new WiniumElementFactory(this);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WiniumDriver"/> class using the specified remote address and options.
         /// </summary>
         /// <param name="remoteAddress">URI containing the address of the WiniumDriver remote server (e.g. http://127.0.0.1:4444/wd/hub).</param>
-        /// <param name="options">The <see cref="IWiniumOptions"/> object to be used with the Winium driver.</param>
-        public WiniumDriver(Uri remoteAddress, IWiniumOptions options)
-            : this(remoteAddress, options, RemoteWebDriver.DefaultCommandTimeout)
+        /// <param name="options">The <see cref="DriverOptions"/> object to be used with the Winium driver.</param>
+        public WiniumDriver(Uri remoteAddress, DriverOptions options)
+            : this(remoteAddress, options, WebDriver.DefaultCommandTimeout)
         {
         }
 
@@ -115,17 +123,129 @@
         /// Initializes a new instance of the <see cref="WiniumDriver"/> class using the specified remote address, desired capabilities, and command timeout.
         /// </summary>
         /// <param name="remoteAddress">URI containing the address of the WiniumDriver remote server (e.g. http://127.0.0.1:4444/wd/hub).</param>
-        /// <param name="options">The <see cref="IWiniumOptions"/> object to be used with the Winium driver.</param>
+        /// <param name="options">The <see cref="DriverOptions"/> object to be used with the Winium driver.</param>
         /// <param name="commandTimeout">The maximum amount of time to wait for each command.</param>
-        public WiniumDriver(Uri remoteAddress, IWiniumOptions options, TimeSpan commandTimeout)
+        public WiniumDriver(Uri remoteAddress, DriverOptions options, TimeSpan commandTimeout)
             : base(CommandExecutorFactory.GetHttpCommandExecutor(remoteAddress, commandTimeout), options.ToCapabilities())
         {
             this.InitWiniumDriverCommands();
+            elementFactory = new WiniumElementFactory(this);
         }
 
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Finds the first element in the window that matches the <see cref="WiniumBy"/> object
+        /// </summary>
+        /// <param name="by">WiniumBy mechanism to find the object</param>
+        /// <returns>Element</returns>
+        public WiniumElement FindElement(WiniumBy by)
+        {
+            if (by == null)
+            {
+                throw new ArgumentNullException(nameof(@by), "by cannot be null");
+            }
+
+            return by.FindElement(this);
+        }
+
+        /// <summary>
+        /// Finds an element matching the given mechanism and value.
+        /// </summary>
+        /// <param name="mechanism">The mechanism by which to find the element.</param>
+        /// <param name="value">The value to use to search for the element.</param>
+        /// <returns>Element</returns>
+        public new WiniumElement FindElement(string mechanism, string value)
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("using", mechanism);
+            parameters.Add("value", value);
+            Response commandResponse = this.Execute(DriverCommand.FindElement, parameters);
+            return this.GetElementFromResponse(commandResponse);
+        }
+
+        /// <summary>
+        /// Finds the elements on the page by using the <see cref="WiniumBy"/> object
+        /// </summary>
+        /// <param name="by">WiniumBy mechanism to find the object</param>
+        /// <returns>Collection of elements</returns>
+        public ReadOnlyCollection<WiniumElement> FindElements(WiniumBy by)
+        {
+            if (by == null)
+            {
+                throw new ArgumentNullException(nameof(@by), "by cannot be null");
+            }
+
+            return by.FindElements(this);
+        }
+
+        /// <summary>
+        /// Finds all elements matching the given mechanism and value.
+        /// </summary>
+        /// <param name="mechanism">The mechanism by which to find the elements.</param>
+        /// <param name="value">The value to use to search for the elements.</param>
+        /// <returns>Collection of elements</returns>
+        public new ReadOnlyCollection<WiniumElement> FindElements(string mechanism, string value)
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("using", mechanism);
+            parameters.Add("value", value);
+            Response commandResponse = this.Execute(DriverCommand.FindElements, parameters);
+            return this.GetElementsFromResponse(commandResponse);
+        }
+
+        public new IWebElement FindElement(By by) => throw new NotImplementedException();
+
+        public new ReadOnlyCollection<IWebElement> FindElements(By by) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Find the element in the response
+        /// </summary>
+        /// <param name="response">Response from the window</param>
+        /// <returns>Element</returns>
+        public WiniumElement GetElementFromResponse(Response response)
+        {
+            if (response == null)
+            {
+                throw new NoSuchElementException();
+            }
+
+            WiniumElement element = null;
+            Dictionary<string, object> elementDictionary = response.Value as Dictionary<string, object>;
+            if (elementDictionary != null)
+            {
+                element = this.elementFactory.CreateElement(elementDictionary);
+            }
+
+            return element;
+        }
+
+        /// <summary>
+        /// Finds the elements that are in the response
+        /// </summary>
+        /// <param name="response">Response from the window</param>
+        /// <returns>Collection of elements</returns>
+        public ReadOnlyCollection<WiniumElement> GetElementsFromResponse(Response response)
+        {
+            List<WiniumElement> toReturn = new List<WiniumElement>();
+            object[] elements = response.Value as object[];
+            if (elements != null)
+            {
+                foreach (object elementObject in elements)
+                {
+                    Dictionary<string, object> elementDictionary = elementObject as Dictionary<string, object>;
+                    if (elementDictionary != null)
+                    {
+                        WiniumElement element = this.elementFactory.CreateElement(elementDictionary);
+                        toReturn.Add(element);
+                    }
+                }
+            }
+
+            return toReturn.AsReadOnly();
+        }
 
         private static WiniumDriverService CreateDefaultService(Type optionsType, string directory)
         {
@@ -151,57 +271,69 @@
 
         private void InitWiniumDriverCommands()
         {
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "findDataGridCell", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/cell/{row}/{column}"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/cell/{row}/{column}"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "getDataGridColumnCount", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/column/count"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/column/count"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "getDataGridRowCount", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/row/count"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/row/count"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "scrollToDataGridCell", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/scroll/{row}/{column}"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/scroll/{row}/{column}"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "selectDataGridCell", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/select/{row}/{column}"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/datagrid/select/{row}/{column}"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "scrollToListBoxItem", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/listbox/scroll"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/listbox/scroll"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "findMenuItem", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/menu/item/{path}"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/menu/item/{path}"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "selectMenuItem", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/menu/select/{path}"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/menu/select/{path}"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "isComboBoxExpanded", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/expanded"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/expanded"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "expandComboBox", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/expand"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/expand"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "collapseComboBox", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/collapse"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/collapse"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "findComboBoxSelectedItem", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/items/selected"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/items/selected"));
 
-            this.CommandExecutor.CommandInfoRepository.TryAddCommand(
+            this.CommandExecutor.TryAddCommand(
                 "scrollToComboBoxItem", 
-                new CommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/scroll"));
+                new HttpCommandInfo("POST", "/session/{sessionId}/element/{id}/combobox/scroll"));
+
+            this.CommandExecutor.TryAddCommand(
+                "mouseDoubleClick",
+                new HttpCommandInfo("POST", "/session/{sessionId}/doubleclick"));
+
+            this.CommandExecutor.TryAddCommand(
+                "mouseContextClick",
+                new HttpCommandInfo("POST", "/session/{sessionId}/contextclick"));
+
+            this.CommandExecutor.TryAddCommand(
+                "mouseMoveTo",
+                new HttpCommandInfo("POST", "/session/{sessionId}/moveto"));
         }
 
         #endregion
