@@ -5,7 +5,7 @@
     <version>$version$</version>
     <authors>kgmouri</authors>
     <owners>kgmouri</owners>
-    <license type="expression">MIT</license>
+    <license type="expression">MPL-2.0</license>
     <projectUrl>https://github.com/kgmouri/Winium.WebDriver</projectUrl>
     <readme>README.md</readme>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
