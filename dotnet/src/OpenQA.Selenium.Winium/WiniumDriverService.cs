@@ -223,6 +223,16 @@
 
         #endregion
 
+        /// <see cref="DriverService.GetDefaultDriverOptions"/>
+        protected override DriverOptions GetDefaultDriverOptions()
+        {
+            return new DesktopOptions();
+        }
+
+        /// <summary>
+        /// Find for a free port.
+        /// </summary>
+        /// <returns>Port number</returns>
         private static int FindFreePort()
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

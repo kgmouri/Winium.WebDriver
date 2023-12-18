@@ -2,6 +2,9 @@
 
 <!--## Unreleased-->
 
+## v1.1.0
+- Updated selenium dependency to version 4.16.2
+
 ## v1.0.1
 - Fixed a minor configuration error.
 
