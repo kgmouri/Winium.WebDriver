@@ -2,6 +2,9 @@
 
 <!--## Unreleased-->
 
+## v1.2.0
+- Updated selenium dependency to version 4.21.0
+
 ## v1.1.0
 - Updated selenium dependency to version 4.16.2
 

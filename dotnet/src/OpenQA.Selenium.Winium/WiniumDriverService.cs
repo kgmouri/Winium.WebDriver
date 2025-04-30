@@ -2,7 +2,6 @@
 {
     #region using
 
-    using System;
     using System.Globalization;
     using System.Net;
     using System.Net.Sockets;
@@ -61,21 +60,6 @@
 
         #endregion
 
-        #region Static Fields
-
-        private static readonly Uri DesktopDriverDownloadUrl = new Uri(
-            "https://github.com/2gis/Winium.Desktop/releases");
-
-        private static readonly Uri SilverlightDriverDownloadUrl =
-            new Uri("https://github.com/2gis/winphonedriver/releases");
-
-        private static readonly Uri StoreAppsDriverDownloadUrl =
-            new Uri("https://github.com/2gis/Winium.StoreApps/releases");
-
-        private static readonly Uri WiniumDownloUrl = new Uri("https://github.com/2gis/Winium");
-
-        #endregion
-
         #region Fields
 
         private bool enableVerboseLogging;
@@ -86,8 +70,8 @@
 
         #region Constructors and Destructors
 
-        private WiniumDriverService(string executablePath, string executableFileName, int port, Uri downloadUrl)
-            : base(executablePath, port, executableFileName, downloadUrl)
+        private WiniumDriverService(string executablePath, string executableFileName, int port)
+            : base(executablePath, port, executableFileName)
         {
         }
 
@@ -175,8 +159,7 @@
             return new WiniumDriverService(
                 driverPath,
                 driverExecutableFileName,
-                FindFreePort(),
-                WiniumDownloUrl);
+                FindFreePort());
         }
 
         /// <summary>
@@ -189,8 +172,7 @@
             return new WiniumDriverService(
                 driverPath,
                 DesktopDriverServiceFileName,
-                FindFreePort(),
-                DesktopDriverDownloadUrl);
+                FindFreePort());
         }
 
         /// <summary>
@@ -203,8 +185,7 @@
             return new WiniumDriverService(
                 driverPath,
                 SilverlightDriverServiceFileName,
-                FindFreePort(),
-                SilverlightDriverDownloadUrl);
+                FindFreePort());
         }
 
         /// <summary>
@@ -217,8 +198,7 @@
             return new WiniumDriverService(
                 driverPath,
                 StoreAppsDriverServiceFileName,
-                FindFreePort(),
-                StoreAppsDriverDownloadUrl);
+                FindFreePort());
         }
 
         #endregion

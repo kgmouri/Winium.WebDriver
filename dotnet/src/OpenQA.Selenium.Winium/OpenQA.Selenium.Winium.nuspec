@@ -11,6 +11,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+v1.2.0
+- Updated selenium dependency to version 4.21.0
 v1.1.0
 - Updated selenium dependency to version 4.16.2
 v1.0.1
@@ -25,7 +27,7 @@ v0.1.1
     <copyright>Copyright @ 2023</copyright>
     <tags>Winium WebDriver Selenium C#</tags>
     <dependencies>
-      <dependency id="Selenium.WebDriver" version="[4.16.2]" />
+      <dependency id="Selenium.WebDriver" version="[4.21.0]" />
     </dependencies>
   </metadata>
   <files>
