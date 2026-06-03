@@ -2,8 +2,8 @@
 {
     #region using
 
-    using OpenQA.Selenium.Remote;
     using System;
+    using System.Threading.Tasks;
 
     #endregion
 
@@ -53,6 +53,12 @@
 
         public Response Execute(Command commandToExecute)
         {
+            return Task.Run(() => ExecuteAsync(commandToExecute)).GetAwaiter().GetResult();
+        }
+
+        /// <see cref="ICommandExecutor.ExecuteAsync"/>
+        public async Task<Response> ExecuteAsync(Command commandToExecute)
+        {
             if (commandToExecute == null)
             {
                 throw new ArgumentNullException("commandToExecute", "Command may not be null");
@@ -65,7 +71,7 @@
 
             try
             {
-                return this.internalExecutor.Execute(commandToExecute);
+                return await this.internalExecutor.ExecuteAsync(commandToExecute).ConfigureAwait(false);
             }
             finally
             {
